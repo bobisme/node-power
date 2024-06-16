@@ -1,4 +1,3 @@
-import os from "os";
 import { Worker } from "worker_threads";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
@@ -12,6 +11,9 @@ let app = express();
 
 let semaphore = new Semaphore(2);
 
+/**
+ * @param {{ task: string; data: { times: number; }; }} workerData
+ */
 function runWorker(workerData) {
   return new Promise((resolve, reject) => {
     semaphore.acquire().then((release) => {
@@ -35,7 +37,7 @@ function runWorker(workerData) {
   });
 }
 
-app.get("/slow", (req, res) => {
+app.get("/slow", (_req, res) => {
   let total = 0;
   for (let i = 0; i < 100_000_000; i++) {
     total += 1;
@@ -43,7 +45,7 @@ app.get("/slow", (req, res) => {
   res.send(`/slow totalled ${total}`);
 });
 
-app.get("/slow-worker", async (req, res) => {
+app.get("/slow-worker", async (_req, res) => {
   let count = await runWorker({ task: "count", data: { times: 100_000_000 } });
   res.send(`/slow-worker totalled ${count}`);
 });
